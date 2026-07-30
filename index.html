@@ -137,8 +137,8 @@
     border-radius: var(--r);
     padding: 7px 14px;
     cursor: pointer;
+    touch-action: manipulation;
   }
-  .btn:hover { background: var(--inju); border-color: var(--inju); }
 
   /* ── 거르개 ─────────────────────────────── */
   .sift {
@@ -239,8 +239,8 @@
     border-radius: var(--r);
     padding: 2px 4px;
     cursor: pointer;
+    touch-action: manipulation;
   }
-  .x:hover { color: var(--inju); }
 
   /* ── 도장 ───────────────────────────────── */
   td.box { padding: 0; }
@@ -252,8 +252,8 @@
     background: none;
     border: 0;
     cursor: pointer;
+    touch-action: manipulation;
   }
-  .cell:hover { background: var(--inju-soft); }
 
   .stamp {
     width: 28px;
@@ -268,9 +268,8 @@
     color: transparent;
     transform: rotate(var(--rot));
   }
-  .cell:hover .stamp { border-color: var(--inju); color: var(--inju-soft); }
 
-  .cell.on .stamp {
+  .cell.on .stamp, .chip.on .stamp {
     border: 2px solid var(--inju);
     box-shadow: inset 0 0 0 1.5px var(--paper), inset 0 0 0 3px var(--inju-soft);
     color: var(--inju);
@@ -304,6 +303,100 @@
   }
   tfoot td.short { color: var(--inju); }
 
+  /* ── 쪽 카드: 좁은 화면에서 표를 대신한다 ── */
+  .cards { display: grid; gap: 10px; }
+
+  .pcard {
+    background: var(--paper);
+    border: 1px solid var(--line-firm);
+    border-radius: var(--r);
+    padding: 12px 12px 14px;
+  }
+  .ph { display: flex; align-items: baseline; gap: 10px; }
+  .ph .nm { flex: 1; font-size: 16px; overflow-wrap: anywhere; }
+  .ph .n {
+    font-family: var(--font-num);
+    font-size: 13px;
+    color: var(--pencil);
+    font-variant-numeric: tabular-nums;
+  }
+  .ph .n.full { color: var(--ink); }
+  .pcard.none .ph .nm { color: var(--inju); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 11px; }
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 6px 11px;
+    font: inherit;
+    font-size: 14px;
+    text-align: left;
+    color: var(--pencil);
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .chip .ct { overflow-wrap: anywhere; }
+  .chip .stamp { width: 20px; height: 20px; font-size: 11px; flex: none; }
+  .chip.late { border-left: 3px solid var(--inju); padding-left: 9px; }
+  .chip.on {
+    color: var(--ink);
+    border-color: var(--inju);
+    background: var(--inju-soft);
+  }
+
+  .tasklist {
+    margin-top: 14px;
+    background: var(--paper);
+    border: 1px solid var(--line-firm);
+    border-radius: var(--r);
+    padding: 4px 12px 8px;
+  }
+  .tasklist h2 {
+    margin: 10px 0 6px;
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    color: var(--pencil);
+  }
+  .tasklist ul { margin: 0; padding: 0; list-style: none; }
+  .tasklist li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-top: 1px solid var(--line);
+  }
+  .tasklist .t { flex: 1; overflow-wrap: anywhere; }
+  .tasklist .d {
+    font-family: var(--font-num);
+    font-size: 11px;
+    color: var(--pencil);
+    white-space: nowrap;
+  }
+  .tasklist .d.late { color: var(--inju); }
+  .tasklist .n {
+    font-family: var(--font-num);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--pencil);
+  }
+  .tasklist .n.short { color: var(--inju); }
+
+  /* 손가락에는 hover가 없다 — 눌린 채로 남는 자국을 막는다 */
+  @media (hover: hover) {
+    .btn:hover { background: var(--inju); border-color: var(--inju); }
+    .x:hover { color: var(--inju); }
+    .cell:hover { background: var(--inju-soft); }
+    .cell:hover .stamp { border-color: var(--inju); color: var(--inju-soft); }
+    .chip:hover { border-color: var(--inju); }
+  }
+
   /* ── 빈 상태 ────────────────────────────── */
   .blank {
     padding: 54px 24px;
@@ -317,11 +410,53 @@
     .cell.on .stamp { animation: none; }
   }
 
-  @media (max-width: 560px) {
-    body { padding: 20px 12px 48px; }
-    .masthead h1 { font-size: 26px; }
-    .tally .big { font-size: 32px; }
-    input[type="text"] { width: 150px; }
+  /* ── 화면 폭 ────────────────────────────── */
+  /* 태블릿: 표는 유지하되 열을 좁혀 한 화면에 더 담는다 */
+  @media (max-width: 860px) {
+    th.name-col { min-width: 104px; }
+    th.task { min-width: 92px; }
+    th.rate-col, td.rate { min-width: 54px; }
+    .ledger { max-height: 68vh; }
+  }
+
+  /* 휴대폰: 표 대신 학생별 카드 (JS의 640px 기준과 같이 간다) */
+  @media (max-width: 640px) {
+    body { padding: 18px 12px 40px; }
+
+    .masthead { gap: 12px; padding-bottom: 12px; }
+    .masthead h1 { font-size: 25px; letter-spacing: 0.08em; }
+    .masthead .sub { font-size: 12px; }
+    .tally .big { font-size: 28px; }
+    .tally .big .unit { font-size: 14px; }
+
+    .desk { gap: 12px; padding: 14px 0; }
+    .tool { width: 100%; gap: 8px; }
+    .tool input[type="text"] { flex: 1; width: auto; min-width: 0; }
+    #task-due { flex: 0 1 152px; min-width: 0; }
+
+    .sift { padding: 12px 0 14px; }
+    #search { flex: 1 1 100%; width: auto; }
+
+    /* 카드가 각자 종이를 갖고 있으므로 장부 테두리는 걷어낸다 */
+    .ledger {
+      background: none;
+      border: 0;
+      border-radius: 0;
+      overflow: visible;
+      max-height: none;
+    }
+    .blank {
+      padding: 36px 18px;
+      background: var(--paper);
+      border: 1px solid var(--line-firm);
+      border-radius: var(--r);
+    }
+
+    /* 손가락으로 누를 자리를 넓힌다 */
+    .ph .x, .tasklist .x { font-size: 18px; padding: 7px 9px; }
+
+    /* iOS에서 입력칸을 누를 때 화면이 확대되지 않게 (16px 미만이면 확대됨) */
+    input[type="text"], input[type="date"], .btn { font-size: 16px; }
   }
 </style>
 </head>
@@ -372,6 +507,12 @@
   var view = { q: '', onlyMissing: false };
 
   var ledger = document.getElementById('ledger');
+
+  // 좁은 화면에서는 표를 접고 학생별 카드로 그린다 (CSS의 640px와 같은 기준)
+  var mql = window.matchMedia ? window.matchMedia('(max-width: 640px)') : null;
+  function isCompact() {
+    return mql ? mql.matches : (window.innerWidth || 1024) <= 640;
+  }
 
   // ── 저장 ────────────────────────────────
   function load() {
@@ -540,12 +681,7 @@
     var row = el('div', 't-row');
     row.appendChild(el('span', 'title', a.title));
 
-    var x = el('button', 'x', '×');
-    x.type = 'button';
-    x.dataset.delTask = a.id;
-    x.title = '과제 지우기';
-    x.setAttribute('aria-label', a.title + ' 과제 지우기');
-    row.appendChild(x);
+    row.appendChild(delBtn('delTask', a.id, a.title + ' 과제 지우기'));
     th.appendChild(row);
 
     if (a.due) {
@@ -563,12 +699,7 @@
     var nameCell = el('td', 'name-col');
     var who = el('div', 'who');
     who.appendChild(el('span', 'nm', s.name));
-    var x = el('button', 'x', '×');
-    x.type = 'button';
-    x.dataset.delStudent = s.id;
-    x.title = '학생 지우기';
-    x.setAttribute('aria-label', s.name + ' 학생 지우기');
-    who.appendChild(x);
+    who.appendChild(delBtn('delStudent', s.id, s.name + ' 학생 지우기'));
     nameCell.appendChild(who);
     tr.appendChild(nameCell);
 
@@ -597,6 +728,81 @@
     var rate = el('td', 'rate' + (total > 0 && got === total ? ' full' : ''), got + '/' + total);
     tr.appendChild(rate);
     return tr;
+  }
+
+  function delBtn(kind, id, label) {
+    var x = el('button', 'x', '×');
+    x.type = 'button';
+    x.dataset[kind] = id;
+    x.title = label;
+    x.setAttribute('aria-label', label);
+    return x;
+  }
+
+  function chip(s, a, now) {
+    var k = key(s.id, a.id);
+    var on = !!state.checks[k];
+    var late = !!a.due && a.due < now;
+
+    var btn = el('button', 'chip' + (on ? ' on' : '') + (late ? ' late' : ''));
+    btn.type = 'button';
+    btn.dataset.sid = s.id;
+    btn.dataset.aid = a.id;
+    btn.setAttribute('role', 'checkbox');
+    btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    btn.setAttribute('aria-label', s.name + ' · ' + a.title + (late ? ' · 마감 지남' : ''));
+
+    btn.appendChild(el('span', 'ct', a.title));
+    var stamp = el('span', 'stamp', '✓');
+    stamp.style.setProperty('--rot', tilt(k));
+    stamp.setAttribute('aria-hidden', 'true');
+    btn.appendChild(stamp);
+    return btn;
+  }
+
+  function personCard(s, total, now) {
+    var got = submitted(s.id);
+    var card = el('article', 'pcard' + (total > 0 && got === 0 ? ' none' : ''));
+
+    var head = el('header', 'ph');
+    head.appendChild(el('span', 'nm', s.name));
+    head.appendChild(el('span', 'n' + (total > 0 && got === total ? ' full' : ''), got + '/' + total));
+    head.appendChild(delBtn('delStudent', s.id, s.name + ' 학생 지우기'));
+    card.appendChild(head);
+
+    var chips = el('div', 'chips');
+    state.assignments.forEach(function (a) { chips.appendChild(chip(s, a, now)); });
+    card.appendChild(chips);
+    return card;
+  }
+
+  // 카드 화면에는 합계 행이 없으므로, 과제별 현황과 과제 삭제를 여기서 맡는다
+  function taskList(now) {
+    var sec = el('section', 'tasklist');
+    sec.appendChild(el('h2', null, '과제별 제출'));
+
+    var ul = el('ul');
+    state.assignments.forEach(function (a) {
+      var li = el('li');
+      var late = !!a.due && a.due < now;
+      var n = submittedFor(a.id);
+
+      li.appendChild(el('span', 't', a.title));
+      if (a.due) li.appendChild(el('span', 'd' + (late ? ' late' : ''), a.due.replace(/-/g, '.') + (late ? ' 마감' : '')));
+      li.appendChild(el('span', 'n' + (n < state.students.length ? ' short' : ''), n + '/' + state.students.length));
+      li.appendChild(delBtn('delTask', a.id, a.title + ' 과제 지우기'));
+      ul.appendChild(li);
+    });
+
+    sec.appendChild(ul);
+    return sec;
+  }
+
+  function noMatch() {
+    return blank(
+      view.onlyMissing ? '해당하는 학생이 없습니다.' : '찾는 이름이 없습니다.',
+      view.onlyMissing ? '모두 제출을 마쳤거나, 이름 찾기 조건에 걸렸습니다.' : null
+    );
   }
 
   function footRow() {
@@ -628,8 +834,18 @@
 
     var rows = visibleStudents();
     renderShown(rows);
-
     var now = today();
+    var total = state.assignments.length;
+
+    if (isCompact()) {
+      var cards = el('div', 'cards');
+      rows.forEach(function (s) { cards.appendChild(personCard(s, total, now)); });
+      ledger.appendChild(cards);
+      if (rows.length === 0) ledger.appendChild(noMatch());
+      ledger.appendChild(taskList(now));
+      return;
+    }
+
     var table = el('table');
 
     var thead = el('thead');
@@ -645,7 +861,6 @@
     table.appendChild(thead);
 
     var tbody = el('tbody');
-    var total = state.assignments.length;
     rows.forEach(function (s) { tbody.appendChild(studentRow(s, total)); });
     table.appendChild(tbody);
 
@@ -655,12 +870,7 @@
 
     ledger.appendChild(table);
 
-    if (rows.length === 0) {
-      ledger.appendChild(blank(
-        view.onlyMissing ? '해당하는 학생이 없습니다.' : '찾는 이름이 없습니다.',
-        view.onlyMissing ? '모두 제출을 마쳤거나, 이름 찾기 조건에 걸렸습니다.' : null
-      ));
-    }
+    if (rows.length === 0) ledger.appendChild(noMatch());
   }
 
   // ── 다루기 ──────────────────────────────
@@ -723,9 +933,21 @@
     var delA = t.closest('[data-del-task]');
     if (delA) { removeAssignment(delA.dataset.delTask); return; }
 
-    var cell = t.closest('.cell');
-    if (cell) toggle(cell.dataset.sid, cell.dataset.aid);
+    // 표의 칸이든 카드의 칩이든 같은 꼬리표를 달고 있다
+    var box = t.closest('[data-sid][data-aid]');
+    if (box) toggle(box.dataset.sid, box.dataset.aid);
   });
+
+  // 가로/세로를 돌리거나 창을 줄여 기준선을 넘으면 표 ↔ 카드로 바꿔 그린다
+  var compact = isCompact();
+  function onViewport() {
+    if (isCompact() === compact) return;
+    compact = !compact;
+    render();
+  }
+  if (mql && mql.addEventListener) mql.addEventListener('change', onViewport);
+  else if (mql && mql.addListener) mql.addListener(onViewport);
+  window.addEventListener('resize', onViewport);
 
   load();
   render();
