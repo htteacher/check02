@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>과제 제출부</title>
+<style>
+  :root {
+    --bg:        #E4E8E4;
+    --paper:     #FBFAF7;
+    --ink:       #23282A;
+    --pencil:    #77837D;
+    --line:      #D3DAD4;
+    --line-firm: #B9C3BC;
+    --inju:      #C4342A;
+    --inju-soft: rgba(196, 52, 42, 0.10);
+
+    --font-display: 'Nanum Myeongjo', 'AppleMyungjo', 'Batang', serif;
+    --font-body: 'Pretendard', 'Malgun Gothic', 'Apple SD Gothic Neo', system-ui, sans-serif;
+    --font-num: 'Consolas', 'SF Mono', ui-monospace, monospace;
+
+    --r: 3px;
+
+    color-scheme: light dark; /* 날짜 선택기 같은 기본 컨트롤도 테마를 따라가게 */
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:        #191E1C;
+      --paper:     #232926;
+      --ink:       #E6EAE6;
+      --pencil:    #8E9A93;
+      --line:      #333B37;
+      --line-firm: #46514B;
+      --inju:      #E2635A;
+      --inju-soft: rgba(226, 99, 90, 0.14);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 28px 20px 64px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  /* ── 표제 ───────────────────────────────── */
+  .masthead {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .masthead h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.1;
+  }
+  .masthead .sub {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: var(--pencil);
+    letter-spacing: 0.02em;
+  }
+  .tally { text-align: right; }
+  .tally .big {
+    font-family: var(--font-num);
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--inju);
+    font-variant-numeric: tabular-nums;
+  }
+  .tally .big.done { color: var(--pencil); }
+  .tally .big .unit { font-size: 18px; margin-left: 3px; letter-spacing: 0; }
+  .tally .cap {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--pencil);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── 입력 ───────────────────────────────── */
+  .desk {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 28px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line-firm);
+  }
+  .tool { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .tool .tag {
+    font-family: var(--font-display);
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    color: var(--pencil);
+    white-space: nowrap;
+  }
+
+  input[type="text"], input[type="date"] {
+    font: inherit;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line-firm);
+    border-radius: var(--r);
+    padding: 7px 10px;
+  }
+  input[type="text"] { width: 190px; }
+  input[type="date"] { color: var(--pencil); }
+  input::placeholder { color: var(--pencil); opacity: 0.75; }
+  input:focus-visible, button:focus-visible {
+    outline: 2px solid var(--inju);
+    outline-offset: 2px;
+  }
+
+  .btn {
+    font: inherit;
+    font-size: 14px;
+    color: var(--paper);
+    background: var(--ink);
+    border: 1px solid var(--ink);
+    border-radius: var(--r);
+    padding: 7px 14px;
+    cursor: pointer;
+  }
+  .btn:hover { background: var(--inju); border-color: var(--inju); }
+
+  /* ── 거르개 ─────────────────────────────── */
+  .sift {
+    display: flex;
+    align-items: center;
+    gap: 8px 18px;
+    flex-wrap: wrap;
+    padding: 14px 0 18px;
+  }
+  .sift label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
+  .sift input[type="checkbox"] { accent-color: var(--inju); width: 15px; height: 15px; }
+  .sift .count { margin-left: auto; font-size: 12px; color: var(--pencil); font-variant-numeric: tabular-nums; }
+
+  /* ── 장부 ───────────────────────────────── */
+  .ledger {
+    background: var(--paper);
+    border: 1px solid var(--line-firm);
+    border-radius: var(--r);
+    overflow: auto;
+    max-height: 72vh;
+  }
+  table { border-collapse: separate; border-spacing: 0; width: 100%; }
+
+  th, td {
+    border-bottom: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    padding: 0;
+    background: var(--paper);
+  }
+  th:last-child, td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 1px solid var(--line-firm); }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    vertical-align: bottom;
+    padding: 11px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+    border-bottom: 1px solid var(--line-firm);
+  }
+  th.name-col, td.name-col {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    border-right: 1px solid var(--line-firm);
+  }
+  thead th.name-col { z-index: 4; }
+  th.name-col {
+    font-family: var(--font-display);
+    letter-spacing: 0.14em;
+    color: var(--pencil);
+    min-width: 132px;
+  }
+
+  th.task { min-width: 108px; }
+  th.task .t-row { display: flex; align-items: baseline; gap: 6px; }
+  th.task .title { flex: 1; word-break: keep-all; }
+  th.task .due {
+    display: block;
+    margin-top: 3px;
+    font-family: var(--font-num);
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--pencil);
+  }
+  th.task.overdue .due { color: var(--inju); }
+
+  th.rate-col, td.rate {
+    min-width: 62px;
+    text-align: right;
+    font-family: var(--font-num);
+    font-variant-numeric: tabular-nums;
+  }
+  th.rate-col { color: var(--pencil); font-weight: 400; letter-spacing: 0; }
+
+  td.name-col .who {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px 8px 12px;
+  }
+  td.name-col .who .nm { flex: 1; word-break: keep-all; }
+  tbody tr.none .who .nm { color: var(--inju); }
+
+  td.rate { padding: 8px 12px; font-size: 13px; color: var(--pencil); }
+  td.rate.full { color: var(--ink); }
+
+  .x {
+    font: inherit;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--line-firm);
+    background: none;
+    border: 0;
+    border-radius: var(--r);
+    padding: 2px 4px;
+    cursor: pointer;
+  }
+  .x:hover { color: var(--inju); }
+
+  /* ── 도장 ───────────────────────────────── */
+  td.box { padding: 0; }
+  .cell {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 44px;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+  .cell:hover { background: var(--inju-soft); }
+
+  .stamp {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    border: 1px dashed var(--line-firm);
+    color: transparent;
+    transform: rotate(var(--rot));
+  }
+  .cell:hover .stamp { border-color: var(--inju); color: var(--inju-soft); }
+
+  .cell.on .stamp {
+    border: 2px solid var(--inju);
+    box-shadow: inset 0 0 0 1.5px var(--paper), inset 0 0 0 3px var(--inju-soft);
+    color: var(--inju);
+    animation: press 260ms cubic-bezier(.2,.9,.3,1);
+  }
+  @keyframes press {
+    0%   { transform: scale(1.8) rotate(var(--rot)); opacity: 0; }
+    55%  { transform: scale(.9) rotate(var(--rot));  opacity: 1; }
+    100% { transform: scale(1) rotate(var(--rot)); }
+  }
+
+  tfoot td {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    padding: 9px 12px;
+    font-family: var(--font-num);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--pencil);
+    text-align: right;
+    background: var(--paper);
+    border-top: 1px solid var(--line-firm);
+    border-bottom: 0;
+  }
+  tfoot td.name-col {
+    z-index: 3;
+    text-align: left;
+    font-family: var(--font-display);
+    letter-spacing: 0.14em;
+  }
+  tfoot td.short { color: var(--inju); }
+
+  /* ── 빈 상태 ────────────────────────────── */
+  .blank {
+    padding: 54px 24px;
+    text-align: center;
+    color: var(--pencil);
+  }
+  .blank p { margin: 0; }
+  .blank p + p { margin-top: 6px; font-size: 13px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cell.on .stamp { animation: none; }
+  }
+
+  @media (max-width: 560px) {
+    body { padding: 20px 12px 48px; }
+    .masthead h1 { font-size: 26px; }
+    .tally .big { font-size: 32px; }
+    input[type="text"] { width: 150px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div>
+      <h1>과제 제출부</h1>
+      <p class="sub">칸을 누르면 도장이 찍힙니다</p>
+    </div>
+    <div class="tally">
+      <div class="big" id="tally-big">—</div>
+      <div class="cap" id="tally-cap">학생과 과제를 추가해 주세요</div>
+    </div>
+  </header>
+
+  <div class="desk">
+    <div class="tool">
+      <span class="tag">학생</span>
+      <input type="text" id="student-name" placeholder="이름 (여러 명은 붙여넣기)" autocomplete="off">
+      <button class="btn" id="add-student">추가</button>
+    </div>
+    <div class="tool">
+      <span class="tag">과제</span>
+      <input type="text" id="task-title" placeholder="과제 이름" autocomplete="off">
+      <input type="date" id="task-due" aria-label="마감일 (선택)">
+      <button class="btn" id="add-task">추가</button>
+    </div>
+  </div>
+
+  <div class="sift">
+    <input type="text" id="search" placeholder="이름 찾기" autocomplete="off" aria-label="이름 찾기">
+    <label><input type="checkbox" id="only-missing"> 안 낸 학생만</label>
+    <span class="count" id="shown"></span>
+  </div>
+
+  <div class="ledger" id="ledger"></div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var KEY = 'assignment-checker-v1';
+  var state = { students: [], assignments: [], checks: {} };
+  var view = { q: '', onlyMissing: false };
+
+  var ledger = document.getElementById('ledger');
+
+  // ── 저장 ────────────────────────────────
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return;
+      var d = JSON.parse(raw);
+      state.students = Array.isArray(d.students) ? d.students : [];
+      state.assignments = Array.isArray(d.assignments) ? d.assignments : [];
+      state.checks = (d.checks && typeof d.checks === 'object') ? d.checks : {};
+    } catch (e) {
+      console.warn('저장된 자료를 읽지 못했습니다.', e);
+    }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    } catch (e) {
+      console.warn('자료를 저장하지 못했습니다.', e);
+    }
+  }
+
+  // ── 도우미 ──────────────────────────────
+  function uid() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+  }
+
+  function key(sid, aid) { return sid + '__' + aid; }
+
+  function today() {
+    var d = new Date();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return d.getFullYear() + '-' + m + '-' + day;
+  }
+
+  // 같은 칸은 늘 같은 각도로 찍히도록 id에서 뽑아낸다
+  function tilt(s) {
+    var h = 0;
+    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    return ((Math.abs(h) % 15) - 7) + 'deg';
+  }
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  function submitted(sid) {
+    var n = 0;
+    for (var i = 0; i < state.assignments.length; i++) {
+      if (state.checks[key(sid, state.assignments[i].id)]) n++;
+    }
+    return n;
+  }
+
+  function submittedFor(aid) {
+    var n = 0;
+    for (var i = 0; i < state.students.length; i++) {
+      if (state.checks[key(state.students[i].id, aid)]) n++;
+    }
+    return n;
+  }
+
+  function visibleStudents() {
+    var q = view.q.trim().toLowerCase();
+    var total = state.assignments.length;
+    return state.students.filter(function (s) {
+      if (q && s.name.toLowerCase().indexOf(q) === -1) return false;
+      if (view.onlyMissing && total > 0 && submitted(s.id) === total) return false;
+      return true;
+    });
+  }
+
+  // ── 손질 ────────────────────────────────
+  function addStudents(text) {
+    var names = text.split(/[,\n\r\t]+/)
+      .map(function (n) { return n.trim(); })
+      .filter(function (n) { return n.length > 0; });
+    if (!names.length) return false;
+    names.forEach(function (name) {
+      state.students.push({ id: uid(), name: name });
+    });
+    return true;
+  }
+
+  function removeStudent(sid) {
+    var s = state.students.find(function (x) { return x.id === sid; });
+    if (!s) return;
+    if (!confirm('‘' + s.name + '’ 학생을 명단에서 지울까요? 체크 기록도 함께 지워집니다.')) return;
+    state.students = state.students.filter(function (x) { return x.id !== sid; });
+    state.assignments.forEach(function (a) { delete state.checks[key(sid, a.id)]; });
+    commit();
+  }
+
+  function removeAssignment(aid) {
+    var a = state.assignments.find(function (x) { return x.id === aid; });
+    if (!a) return;
+    if (!confirm('‘' + a.title + '’ 과제를 지울까요? 체크 기록도 함께 지워집니다.')) return;
+    state.assignments = state.assignments.filter(function (x) { return x.id !== aid; });
+    state.students.forEach(function (s) { delete state.checks[key(s.id, aid)]; });
+    commit();
+  }
+
+  function toggle(sid, aid) {
+    var k = key(sid, aid);
+    if (state.checks[k]) delete state.checks[k];
+    else state.checks[k] = true;
+    commit();
+  }
+
+  function commit() { save(); render(); }
+
+  // ── 그리기 ──────────────────────────────
+  function renderTally() {
+    var big = document.getElementById('tally-big');
+    var cap = document.getElementById('tally-cap');
+    var boxes = state.students.length * state.assignments.length;
+
+    if (boxes === 0) {
+      big.textContent = '—';
+      big.classList.remove('done');
+      cap.textContent = state.students.length === 0
+        ? '학생을 먼저 추가해 주세요'
+        : '과제를 추가하면 칸이 생깁니다';
+      return;
+    }
+
+    var done = 0;
+    for (var k in state.checks) if (state.checks[k]) done++;
+    var missing = boxes - done;
+
+    big.textContent = '';
+    big.appendChild(document.createTextNode(String(missing)));
+    big.appendChild(el('span', 'unit', '칸'));
+    big.classList.toggle('done', missing === 0);
+    cap.textContent = missing === 0
+      ? '전부 제출됐습니다 · ' + boxes + '칸'
+      : '아직 안 낸 칸 · 전체 ' + boxes + '칸 중 ' + done + '칸 제출';
+  }
+
+  function renderShown(rows) {
+    var s = document.getElementById('shown');
+    if (state.students.length === 0) { s.textContent = ''; return; }
+    s.textContent = rows.length === state.students.length
+      ? '학생 ' + state.students.length + '명'
+      : state.students.length + '명 중 ' + rows.length + '명 표시';
+  }
+
+  function blank(line, hint) {
+    var b = el('div', 'blank');
+    b.appendChild(el('p', null, line));
+    if (hint) b.appendChild(el('p', null, hint));
+    return b;
+  }
+
+  function taskHead(a, now) {
+    var th = el('th', 'task');
+    th.scope = 'col';
+    if (a.due && a.due < now) th.classList.add('overdue');
+
+    var row = el('div', 't-row');
+    row.appendChild(el('span', 'title', a.title));
+
+    var x = el('button', 'x', '×');
+    x.type = 'button';
+    x.dataset.delTask = a.id;
+    x.title = '과제 지우기';
+    x.setAttribute('aria-label', a.title + ' 과제 지우기');
+    row.appendChild(x);
+    th.appendChild(row);
+
+    if (a.due) {
+      var due = el('span', 'due', a.due.replace(/-/g, '.') + (a.due < now ? ' 마감' : ''));
+      th.appendChild(due);
+    }
+    return th;
+  }
+
+  function studentRow(s, total) {
+    var tr = el('tr');
+    var got = submitted(s.id);
+    if (total > 0 && got === 0) tr.classList.add('none');
+
+    var nameCell = el('td', 'name-col');
+    var who = el('div', 'who');
+    who.appendChild(el('span', 'nm', s.name));
+    var x = el('button', 'x', '×');
+    x.type = 'button';
+    x.dataset.delStudent = s.id;
+    x.title = '학생 지우기';
+    x.setAttribute('aria-label', s.name + ' 학생 지우기');
+    who.appendChild(x);
+    nameCell.appendChild(who);
+    tr.appendChild(nameCell);
+
+    state.assignments.forEach(function (a) {
+      var td = el('td', 'box');
+      var k = key(s.id, a.id);
+      var on = !!state.checks[k];
+
+      var btn = el('button', 'cell' + (on ? ' on' : ''));
+      btn.type = 'button';
+      btn.dataset.sid = s.id;
+      btn.dataset.aid = a.id;
+      btn.setAttribute('role', 'checkbox');
+      btn.setAttribute('aria-checked', on ? 'true' : 'false');
+      btn.setAttribute('aria-label', s.name + ' · ' + a.title);
+
+      var stamp = el('span', 'stamp', '✓');
+      stamp.style.setProperty('--rot', tilt(k));
+      stamp.setAttribute('aria-hidden', 'true');
+      btn.appendChild(stamp);
+
+      td.appendChild(btn);
+      tr.appendChild(td);
+    });
+
+    var rate = el('td', 'rate' + (total > 0 && got === total ? ' full' : ''), got + '/' + total);
+    tr.appendChild(rate);
+    return tr;
+  }
+
+  function footRow() {
+    var tr = el('tr');
+    tr.appendChild(el('td', 'name-col', '합계'));
+    state.assignments.forEach(function (a) {
+      var n = submittedFor(a.id);
+      var td = el('td', n < state.students.length ? 'short' : null, n + '/' + state.students.length);
+      tr.appendChild(td);
+    });
+    tr.appendChild(el('td', null, ''));
+    return tr;
+  }
+
+  function render() {
+    renderTally();
+    ledger.textContent = '';
+
+    if (state.students.length === 0) {
+      renderShown([]);
+      ledger.appendChild(blank('명단이 비어 있습니다.', '위에 학생 이름을 넣어 주세요. 명단을 통째로 붙여넣어도 됩니다.'));
+      return;
+    }
+    if (state.assignments.length === 0) {
+      renderShown(state.students);
+      ledger.appendChild(blank('과제가 아직 없습니다.', '과제를 추가하면 학생마다 체크 칸이 생깁니다.'));
+      return;
+    }
+
+    var rows = visibleStudents();
+    renderShown(rows);
+
+    var now = today();
+    var table = el('table');
+
+    var thead = el('thead');
+    var htr = el('tr');
+    var nameHead = el('th', 'name-col', '이름');
+    nameHead.scope = 'col';
+    htr.appendChild(nameHead);
+    state.assignments.forEach(function (a) { htr.appendChild(taskHead(a, now)); });
+    var rateHead = el('th', 'rate-col', '제출');
+    rateHead.scope = 'col';
+    htr.appendChild(rateHead);
+    thead.appendChild(htr);
+    table.appendChild(thead);
+
+    var tbody = el('tbody');
+    var total = state.assignments.length;
+    rows.forEach(function (s) { tbody.appendChild(studentRow(s, total)); });
+    table.appendChild(tbody);
+
+    var tfoot = el('tfoot');
+    tfoot.appendChild(footRow());
+    table.appendChild(tfoot);
+
+    ledger.appendChild(table);
+
+    if (rows.length === 0) {
+      ledger.appendChild(blank(
+        view.onlyMissing ? '해당하는 학생이 없습니다.' : '찾는 이름이 없습니다.',
+        view.onlyMissing ? '모두 제출을 마쳤거나, 이름 찾기 조건에 걸렸습니다.' : null
+      ));
+    }
+  }
+
+  // ── 다루기 ──────────────────────────────
+  var nameInput = document.getElementById('student-name');
+  var titleInput = document.getElementById('task-title');
+  var dueInput = document.getElementById('task-due');
+
+  function submitStudent() {
+    if (!addStudents(nameInput.value)) { nameInput.focus(); return; }
+    nameInput.value = '';
+    nameInput.focus();
+    commit();
+  }
+
+  function submitTask() {
+    var title = titleInput.value.trim();
+    if (!title) { titleInput.focus(); return; }
+    state.assignments.push({ id: uid(), title: title, due: dueInput.value || '' });
+    titleInput.value = '';
+    dueInput.value = '';
+    titleInput.focus();
+    commit();
+  }
+
+  document.getElementById('add-student').addEventListener('click', submitStudent);
+  document.getElementById('add-task').addEventListener('click', submitTask);
+
+  nameInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); submitStudent(); }
+  });
+  [titleInput, dueInput].forEach(function (n) {
+    n.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); submitTask(); }
+    });
+  });
+
+  // 줄바꿈이 섞인 명단은 붙여넣는 즉시 한 명씩 나눠 담는다
+  nameInput.addEventListener('paste', function (e) {
+    var text = (e.clipboardData || window.clipboardData).getData('text');
+    if (!text || !/[,\n\r\t]/.test(text)) return;
+    e.preventDefault();
+    if (addStudents(text)) { nameInput.value = ''; commit(); }
+  });
+
+  document.getElementById('search').addEventListener('input', function (e) {
+    view.q = e.target.value;
+    render();
+  });
+  document.getElementById('only-missing').addEventListener('change', function (e) {
+    view.onlyMissing = e.target.checked;
+    render();
+  });
+
+  ledger.addEventListener('click', function (e) {
+    var t = e.target;
+
+    var delS = t.closest('[data-del-student]');
+    if (delS) { removeStudent(delS.dataset.delStudent); return; }
+
+    var delA = t.closest('[data-del-task]');
+    if (delA) { removeAssignment(delA.dataset.delTask); return; }
+
+    var cell = t.closest('.cell');
+    if (cell) toggle(cell.dataset.sid, cell.dataset.aid);
+  });
+
+  load();
+  render();
+})();
+</script>
+</body>
+</html>
